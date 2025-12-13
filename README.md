@@ -179,6 +179,77 @@ curl -X POST "http://localhost:8000/compare" \
   }'
 ```
 
+## Social Network Analysis (NEW in v2.1)
+
+Rose Looking Glass now includes coherence-based social network analysis capabilities.
+
+### Features
+
+- **Coherence Graph Service**: Track user coherence patterns over time
+- **Influence Topology Analysis**: Map how patterns propagate through networks
+- **Cascade Detection**: Identify rapid spread of emotional/coherence patterns
+- **Influence Type Classification**: Identify amplifiers, stabilizers, fragmenters, wisdom sources
+- **Network Health Metrics**: Monitor overall network coherence
+- **Intervention Recommendations**: Suggest users who can stabilize cascades
+
+### Quick Example
+
+```python
+from src.network_analysis import (
+    CoherenceGraphService,
+    CoherenceInfluenceAnalyzer,
+    InfluenceType
+)
+
+# Initialize
+graph = CoherenceGraphService()
+analyzer = CoherenceInfluenceAnalyzer(graph)
+
+# Add user messages (automatically translated through Rose Glass)
+await graph.add_user_message("user1", "I'm terrified and don't know what to do!")
+await graph.add_user_message("user2", "Let's stay calm and think through this.")
+
+# Analyze influence
+analysis = await analyzer.analyze_user_influence("user1")
+print(f"Influence type: {analysis.influence_type.value}")
+print(f"Risk indicators: {analysis.risk_indicators}")
+print(f"Recommendations: {analysis.recommendations}")
+
+# Detect cascades
+cascades = await graph.detect_coherence_cascades()
+for cascade in cascades:
+    print(f"Cascade from {cascade.source_user}: {len(cascade.affected_users)} affected")
+
+    # Get intervention recommendations
+    interventions = await analyzer.recommend_interventions(cascade.id)
+    for intervention in interventions:
+        print(f"  Stabilizer: {intervention['user_id']}")
+
+# Network health
+health = await analyzer.get_network_health_metrics()
+print(f"Network coherence: {health['network_avg_coherence']:.2f}")
+print(f"Active cascades: {health['active_cascades']}")
+```
+
+### Influence Types
+
+- **Amplifier**: Increases emotional activation in network (high q → high q)
+- **Stabilizer**: Reduces volatility, increases consistency (low volatility → low volatility)
+- **Fragmenter**: Decreases internal consistency (low Ψ → low Ψ)
+- **Dampener**: Reduces overall activation (low q → low q)
+- **Wisdom Source**: Shares knowledge, increases ρ (high ρ → high ρ)
+- **Resonator**: Creates strong pattern matching (neutral influence)
+
+### Use Cases
+
+- **Crisis Detection**: Identify emotional cascades in online communities
+- **Community Health**: Monitor overall coherence patterns
+- **Intervention Design**: Find stabilizers to calm activated networks
+- **Influence Mapping**: Understand who shapes coherence patterns
+- **Pattern Propagation**: Track how wisdom/crisis spreads through networks
+
+See `examples/network_analysis_example.py` for complete walkthrough.
+
 ## Architecture
 
 ```
@@ -190,10 +261,17 @@ rose-looking-glass/
 │   │   └── rose_looking_glass.py  # Main engine
 │   ├── api/                       # REST API
 │   │   └── main.py                # FastAPI application
+│   ├── network_analysis/          # Social network coherence analysis
+│   │   ├── coherence_graph.py     # Graph service
+│   │   └── coherence_influence_analyzer.py  # Influence analysis
 │   ├── cultural_lenses/           # Community-contributed lenses
 │   └── utils/                     # Utilities
 ├── tests/                         # Test suite
+│   ├── test_core.py               # Core engine tests
+│   └── test_network_analysis.py   # Network analysis tests
 ├── examples/                      # Usage examples
+│   ├── basic_usage.py             # Core translation examples
+│   └── network_analysis_example.py  # Network analysis walkthrough
 ├── docs/                          # Extended documentation
 └── requirements.txt
 ```
