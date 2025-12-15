@@ -140,6 +140,70 @@ for lens_name, visibility in comparisons.items():
 # trauma_informed: 0.59
 ```
 
+## Lens Deviation & Truth Invariance (NEW in v2.1)
+
+### Detecting Universal Truth Across Cultural Contexts
+
+The Rose Looking Glass can detect **lens-invariant truth** by measuring how much different cultural lenses agree or disagree on pattern coherence. This implements the **Veritas distortion index D(P)** from Jade structure theory.
+
+```python
+glass = RoseLookingGlass(invariance_threshold=0.1)
+
+# Calculate lens deviation (standard deviation across all lenses)
+deviation = glass.calculate_lens_deviation(
+    psi=0.9, rho=0.9, q=0.1, f=0.3
+)
+
+print(f"Lens deviation: {deviation:.3f}")
+# Low deviation (~0.02) → All lenses agree → Universal truth
+# High deviation (~0.15) → Lenses disagree → Context-dependent
+
+# Check if pattern triggers Fibonacci reset
+should_reset, deviation = glass.should_reset_fibonacci(
+    psi=0.9, rho=0.9, q=0.1, f=0.3
+)
+
+if should_reset:
+    print("RESET: Lens-invariant truth detected")
+    print("All cultural contexts agree on coherence")
+else:
+    print("EXPAND: Context-dependent pattern")
+    print("Different cultures interpret differently")
+```
+
+### The Mathematics
+
+**Lens Deviation (σ_lens):**
+```
+σ_lens = std([C_academic, C_digital, C_trauma, C_contemplative, C_activist])
+```
+
+**Veritas Distortion Index:**
+```
+V(P) = 1 / (1 + D(P))  where D(P) = σ_lens
+```
+
+- **Low σ_lens (< 0.1)**: Universal truth - pattern reads the same across all cultural contexts
+- **High σ_lens (> 0.1)**: Context-dependent - different cultures interpret differently
+
+### What Creates High vs Low Deviation?
+
+**Low Deviation (Universal Agreement):**
+- Balanced patterns (moderate Ψ, ρ, q, f)
+- High q patterns (biological optimization dampens extremes → universal coherence)
+
+**High Deviation (Cultural Disagreement):**
+- High Ψ/ρ with low q/f (lenses weight logic/wisdom differently)
+- Extreme imbalances between dimensions
+
+### Fibonacci Reset Triggers
+
+When lens deviation collapses below threshold, it signals **translation-invariant truth** - a truth that survives distortion across all cultural frames. This is the criterion for resetting the Fibonacci sequence:
+
+> "The Fibonacci spiral follows epistemological confidence, not just pattern detection. Low distortion = truth stabilizes across frames = new origin point."
+
+See `examples/lens_deviation_example.py` for complete demonstrations.
+
 ## REST API
 
 Start the FastAPI server:
@@ -372,6 +436,8 @@ We welcome community contributions, especially:
 - ✨ **Five default cultural lenses** (academic, digital, contemplative, activist, trauma-informed)
 - ✨ **Biological optimization** with Michaelis-Menten kinetics
 - ✨ **Lens comparison** - view patterns through all lenses simultaneously
+- ✨ **Lens deviation & truth invariance** - detect universal truths that transcend cultural context
+- ✨ **Fibonacci reset triggers** - epistemological confidence tracking via distortion index
 - ✨ **Confidence scoring** - indicates translation certainty
 - ✨ **Alternative suggestions** - recommends other lenses to try
 - ✨ **Uncertainty notes** - flags ambiguous translations

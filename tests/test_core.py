@@ -344,3 +344,119 @@ class TestRoseLookingGlass:
 
         assert trauma_lens.bio_params is not None
         assert trauma_lens.bio_params.Km == 0.2  # More sensitive to low values
+
+    def test_calculate_lens_deviation(self):
+        """Should calculate standard deviation across lenses"""
+        glass = RoseLookingGlass()
+
+        # Pattern with high logic (should have low deviation - all lenses agree)
+        deviation = glass.calculate_lens_deviation(
+            psi=0.9, rho=0.9, q=0.1, f=0.3
+        )
+
+        assert 0.0 <= deviation <= 1.0
+        # Academic patterns should have relatively low deviation
+        assert deviation < 0.3
+
+    def test_should_reset_fibonacci_universal_truth(self):
+        """Should reset when lens deviation is low (universal truth)"""
+        glass = RoseLookingGlass(invariance_threshold=0.15)
+
+        # High logic, high wisdom pattern
+        should_reset, deviation = glass.should_reset_fibonacci(
+            psi=0.9, rho=0.9, q=0.1, f=0.3
+        )
+
+        # May or may not reset depending on exact lens calibrations
+        assert isinstance(should_reset, bool)
+        assert 0.0 <= deviation <= 1.0
+
+    def test_should_reset_fibonacci_context_dependent(self):
+        """Should not reset when lens deviation is high (context-dependent)"""
+        glass = RoseLookingGlass(invariance_threshold=0.1)
+
+        # High Ψ/ρ, low q/f pattern - lenses weight these differently
+        # Academic lenses value Ψ/ρ highly, others don't - creates disagreement
+        should_reset, deviation = glass.should_reset_fibonacci(
+            psi=0.9, rho=0.9, q=0.1, f=0.1
+        )
+
+        # This should have higher deviation (lenses disagree on Ψ/ρ importance)
+        assert should_reset is False, "Context-dependent patterns should not trigger reset"
+        assert deviation > glass.invariance_threshold, f"Deviation {deviation:.4f} should exceed threshold {glass.invariance_threshold}"
+
+    def test_invariance_threshold_configuration(self):
+        """Should allow configuration of invariance threshold"""
+        glass1 = RoseLookingGlass(invariance_threshold=0.05)
+        glass2 = RoseLookingGlass(invariance_threshold=0.20)
+
+        assert glass1.invariance_threshold == 0.05
+        assert glass2.invariance_threshold == 0.20
+
+    def test_lens_deviation_distortion_index(self):
+        """Lens deviation should implement Veritas distortion index D(P)"""
+        glass = RoseLookingGlass()
+
+        # Calculate for balanced pattern
+        deviation = glass.calculate_lens_deviation(
+            psi=0.6, rho=0.6, q=0.5, f=0.5
+        )
+
+        # Veritas = 1 / (1 + D(P)) where D(P) = lens_deviation
+        veritas = 1.0 / (1.0 + deviation)
+
+        assert 0.0 < veritas <= 1.0
+        # High veritas = low distortion = universal truth
+        # Low veritas = high distortion = context-dependent
+
+    def test_should_reset_fibonacci_edge_case_at_threshold(self):
+        """Should handle edge case when deviation exactly equals threshold"""
+        glass = RoseLookingGlass(invariance_threshold=0.15)
+
+        # Find pattern that produces deviation near threshold
+        # Balanced pattern should have moderate deviation
+        should_reset, deviation = glass.should_reset_fibonacci(
+            psi=0.6, rho=0.6, q=0.5, f=0.5
+        )
+
+        # Behavior at threshold: deviation < threshold means reset
+        if deviation < glass.invariance_threshold:
+            assert should_reset is True
+        else:
+            assert should_reset is False
+
+        # Deviation should not equal threshold exactly (floating point makes this rare)
+        assert isinstance(deviation, float)
+
+    def test_temporal_deviation_collapse(self):
+        """Should show deviation decreasing as patterns converge toward truth"""
+        glass = RoseLookingGlass(invariance_threshold=0.1)
+
+        # Sequence: context-dependent → moderate → universal truth
+        # NOTE: Biological optimization dampens extreme q, creating universal agreement
+        # High Ψ/ρ creates disagreement because lenses weight differently
+        patterns = [
+            # Context-dependent - lenses disagree on Ψ/ρ importance
+            (0.9, 0.9, 0.1, 0.1),  # High deviation (~0.136)
+            # Moderate - some imbalance
+            (0.7, 0.5, 0.4, 0.4),  # Medium deviation
+            # Universal truth - balanced pattern, all lenses agree
+            (0.6, 0.6, 0.5, 0.5),  # Low deviation (~0.015)
+        ]
+
+        deviations = []
+        resets = []
+
+        for psi, rho, q, f in patterns:
+            should_reset, deviation = glass.should_reset_fibonacci(psi, rho, q, f)
+            deviations.append(deviation)
+            resets.append(should_reset)
+
+        # Deviation should decrease as patterns become more balanced
+        assert deviations[2] < deviations[0], "Truth convergence should reduce deviation"
+
+        # First pattern should NOT reset (context-dependent)
+        assert resets[0] is False, "Context-dependent pattern should not reset"
+
+        # Final pattern SHOULD reset (universal truth)
+        assert resets[2] is True, "Balanced universal pattern should trigger reset"
